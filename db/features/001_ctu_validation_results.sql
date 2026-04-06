@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS features.ctu_validation_results (
+    id BIGSERIAL PRIMARY KEY,
+    candidate_state TEXT NOT NULL,
+    cohort_name TEXT NOT NULL,
+    split_name TEXT NOT NULL,
+    n_events INTEGER,
+    mean_excess_return DOUBLE PRECISION,
+    median_excess_return DOUBLE PRECISION,
+    win_rate DOUBLE PRECISION,
+    payoff DOUBLE PRECISION,
+    baseline_mean DOUBLE PRECISION,
+    lift DOUBLE PRECISION,
+    ci_low DOUBLE PRECISION,
+    ci_high DOUBLE PRECISION,
+    frac_positive_boot DOUBLE PRECISION,
+    loso_frac_positive DOUBLE PRECISION,
+    loso_frac_top_half DOUBLE PRECISION,
+    verdict TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
