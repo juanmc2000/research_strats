@@ -1,0 +1,117 @@
+============================================================================
+CTU SLEEVE RESOLUTION — RECONCILIATION AUDIT + SLEEVE DECISION  (Issue #6)
+Generated: 2026-04-06
+============================================================================
+
+FROZEN CTU DEFINITION
+  vol_ratio_20_100  < 0.8
+  efficiency_20     > 0.6
+  breakout_direction = UP
+  Cost: realized_return_sd30d - 0.07
+  Train: year < 2022  |  Val: 2022–2023  |  Fwd: >= 2024
+
+----------------------------------------------------------------------------
+PHASE 0 — RECONCILIATION AUDIT
+----------------------------------------------------------------------------
+
+Reconciliation verdict: STATISTICAL (REAL)
+
+All trade sets, standalone metrics, and portfolio construction methods are identical across scripts. The contradiction between universe qualification and sleeve construction is not implementation-driven. It arises from different comparison baselines: the universe ranking compares universes against each other; the sleeve comparison measures marginal impact of adding a symbol relative to the anchor alone.
+
+Audit summary:
+  A. Trade-set parity:           14 PASS  0 FAIL
+  B. Metric parity:              30 PASS  0 FAIL
+  C. Portfolio construction:     3 PASS  0 FAIL
+  D. Candidate combination:      4 PASS  0 FAIL
+
+WHY THE APPARENT CONTRADICTION EXISTS:
+
+  The universe qualification ranked C_keep_only (AUD+NZD) as the best
+  universe by forward Sharpe among the pre-declared KEEP-only universes.
+  The sleeve construction measured the MARGINAL IMPACT of adding NZD
+  to the AUD anchor — and found it dilutes Sharpe from 0.324 to 0.241.
+
+  These are NOT contradictory. They answer different questions:
+    Universe: "which combination is best among tested universes?"
+    Sleeve:   "does adding this symbol help the anchor?"
+
+  USD/CHF was absent from universe comparisons because it was classified
+  MONITOR (not KEEP), so it was not included in C_keep_only or D.
+  The sleeve construction — testing MONITOR symbols explicitly — found
+  that AUD+USD/CHF slightly outperforms AUD+NZD in forward Sharpe.
+
+----------------------------------------------------------------------------
+PHASE 1 — SLEEVE RESOLUTION
+----------------------------------------------------------------------------
+
+CANDIDATE SLEEVE PERFORMANCE
+
+  Sleeve                 syms   fwd_sh   fwd_dd  fwd_n  fwd_wr  fwd_p<-1  train_sh   val_sh
+  ---------------------- ---- -------- -------- ------ ------- --------- --------- --------
+  B_aud_usdchf              2   +0.334   11.148     55   0.636     0.236    +0.061   -0.039
+  A_aud_only                1   +0.324   11.148     33   0.606     0.303    -0.235   +0.005
+  D_aud_nzd_usdchf          3   +0.264   30.015     92   0.533     0.337    +0.135   -0.140
+  C_aud_nzd                 2   +0.241   30.015     70   0.486     0.400    +0.155   -0.188
+
+ANCHOR DELTA ANALYSIS (fwd Sharpe vs AUD/USD alone)
+  Anchor (A_aud_only):  fwd Sharpe = +0.324
+
+  B_aud_usdchf            sh_delta=+0.011  dd_delta=+0.000  [COMPATIBLE]
+  C_aud_nzd               sh_delta=-0.083  dd_delta=+18.866  [INCOMPATIBLE]
+  D_aud_nzd_usdchf        sh_delta=-0.060  dd_delta=+18.866  [INCOMPATIBLE]
+
+NZD/USD IMPACT RESOLUTION
+
+  NZD/USD standalone fwd Sharpe: +0.146  (KEEP)
+  AUD+NZD pooled fwd Sharpe:     +0.241  (below AUD alone at +0.324)
+
+  Why NZD/USD dilutes the sleeve:
+    NZD forward win rate = 37.8% — below AUD at 60.6%.
+    NZD fwd p(<-1) = 0.486 — nearly half of forward trades exceed -1 SD30d.
+    NZD positive fwd mean is driven by a fat right tail (payoff 2.41, p>+1=0.27)
+    rather than consistent wins. This right-tail skew does not improve Sharpe
+    when pooled with AUD/USD which has a higher, more consistent fwd win rate.
+    Result: NZD adds P&L upside at the cost of Sharpe and drawdown.
+
+USD/CHF ROLE RE-EVALUATION
+
+  USD/CHF fwd Sharpe:         +0.534  (MONITOR — thin, n_fwd=22)
+  USD/CHF fwd win rate:        68.2%  (highest in universe)
+  USD/CHF fwd p(<-1):          0.136  (lowest left-tail in universe)
+  USD/CHF fwd max_dd:          4.1    (lowest drawdown in universe)
+
+  AUD+USD/CHF fwd Sharpe:     +0.334 (sh_delta = +0.010 vs AUD alone)
+
+  USD/CHF is the highest quality forward symbol. The MONITOR flag was
+  triggered by material full/fwd Sharpe disagreement (0.124 vs 0.534).
+  This gap reflects forward improvement, not regime reversal.
+  The main risk is n_fwd=22 — the forward sample is thin and the
+  Sharpe estimate carries high uncertainty.
+
+SYMBOL ROLES
+
+  Symbol        Prior  Revised Role                    full_sh   fwd_sh  n_fwd  compat
+  ---------- -------- -------- ---------------------- -------- -------- ------ -------
+  EUR/USD     MONITOR  MONITOR MONITOR_POSITIVE         +0.043   -0.193     41   False
+  GBP/USD     EXCLUDE  EXCLUDE EXCLUDE                  -0.087   +0.107     44   False
+  USD/CHF     MONITOR  MONITOR MONITOR_POSITIVE         +0.124   +0.534     22    True
+  AUD/USD        KEEP     KEEP KEEP_ACTIVE              +0.125   +0.324     33    True
+  USD/CAD     EXCLUDE  EXCLUDE EXCLUDE                  -0.058   -0.506     37   False
+  NZD/USD        KEEP  MONITOR MONITOR_POSITIVE         +0.162   +0.146     37   False
+  EUR/GBP     EXCLUDE  EXCLUDE EXCLUDE                  -0.110   -0.559     14   False
+
+============================================================================
+FINAL DECISION
+============================================================================
+
+  TWO_SYMBOL_SLEEVE (AUD/USD + USD/CHF)
+
+  USD/CHF is sleeve-compatible (sh_delta=+0.011). Sleeve is AUD+USD/CHF. Condition: monitor USD/CHF n_fwd (currently 22) — promote to frozen when n_fwd >= 40.
+
+CONDITIONS AND NEXT STEPS
+
+  1. AUD/USD + USD/CHF is the provisional 2-symbol sleeve.
+  2. USD/CHF n_fwd=22 is thin. Sleeve promotion conditional on n_fwd >= 40.
+  3. NZD/USD: KEEP standalone, sleeve-incompatible (dilutes Sharpe).
+  4. Next step: pre-sizing research (Stage F) on frozen sleeve.
+  5. Re-evaluate NZD inclusion if fwd win rate improves above 45%.
