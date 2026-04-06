@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS features.ctu_predeployment_results (
+    id BIGSERIAL PRIMARY KEY,
+    candidate_state TEXT NOT NULL,
+    section_name TEXT NOT NULL,
+    config_name TEXT NOT NULL,
+    split_name TEXT NOT NULL,
+    n_events INTEGER,
+    mean_return DOUBLE PRECISION,
+    sharpe DOUBLE PRECISION,
+    max_drawdown DOUBLE PRECISION,
+    win_rate DOUBLE PRECISION,
+    payoff DOUBLE PRECISION,
+    p_lt_neg1 DOUBLE PRECISION,
+    p_gt_pos1 DOUBLE PRECISION,
+    ci_low DOUBLE PRECISION,
+    ci_high DOUBLE PRECISION,
+    verdict TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
